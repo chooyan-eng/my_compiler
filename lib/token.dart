@@ -1,26 +1,26 @@
 enum TokenType {
-  // リテラル
+  // Literals
   number,
 
-  // 演算子
+  // Operators
   plus,   // +
   minus,  // -
   star,   // *
   slash,  // /
 
-  // 区切り文字
+  // Delimiters
   lparen, // (
   rparen, // )
 
-  // 終端
+  // End of file
   eof,
 }
 
 class Token {
   final TokenType type;
-  final String lexeme;   // ソースコード上の元の文字列（"42"など）
-  final int line;        // 行番号（エラー報告用）
-  final int column;      // 列番号（エラー報告用）
+  final String lexeme;   // The original string in source code (e.g., "42")
+  final int line;        // Line number (for error reporting)
+  final int column;      // Column number (for error reporting)
 
   const Token({
     required this.type,
