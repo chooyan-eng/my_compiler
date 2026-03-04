@@ -1,0 +1,9 @@
+name: my_compiler
+description: A compiler written in Dart targeting x86_64 Mach-O.
+version: 0.0.1
+
+environment:
+  sdk: ^3.0.0
+
+dev_dependencies:
+  test: ^1.24.0
