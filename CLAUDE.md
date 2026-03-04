@@ -1,74 +1,74 @@
-# my_compiler — プロジェクトコンテキスト
+# my_compiler — Project Context
 
-## このファイルの目的
-Claude.aiでの会話内容をClaude Codeに引き継ぐためのコンテキストファイルです。
-作業を再開する際はこのファイルを読んでから始めてください。
-
----
-
-## プロジェクト概要
-
-- **目標**: Dartで書いたコンパイラが自作言語のソースコードを受け取り、x86_64ネイティブバイナリを出力する
-- **実装言語**: Dart 3.x
-- **出力ターゲット**: x86_64 Mach-O（macOS）
-- **開発者プロフィール**: Flutter開発歴15年。情報工学の学習目的でコンパイラを自作中
-
-## コンパイラのフェーズ構成
-
-```
-ソースコード
-  → [1] 字句解析 (Lexer)       ← 今ここ
-  → [2] 構文解析 (Parser)
-  → [3] 意味解析 (Semantic Analysis)
-  → [4] コード生成 (Code Generator) → x86_64 アセンブリ (.s)
-  → [5] アセンブル + リンク (NASM + ld) → 実行バイナリ (Mach-O)
-```
+## Purpose of This File
+This is a context file for handing off conversation content from Claude.ai to Claude Code.
+Read this file before resuming work.
 
 ---
 
-## 現在の作業状況
+## Project Overview
 
-**フェーズ: 字句解析 (Lexer) — 実装開始前**
+- **Goal**: A compiler written in Dart that accepts source code in a custom language and outputs x86_64 native binaries
+- **Implementation language**: Dart 3.x
+- **Output target**: x86_64 Mach-O (macOS)
+- **Developer profile**: 15 years of Flutter development. Building a compiler for educational purposes in computer science
 
-### 完了済み
-- macOS環境構築の方針確定
+## Compiler Phase Structure
+
+```
+Source code
+  → [1] Lexical analysis (Lexer)       ← current phase
+  → [2] Syntax analysis (Parser)
+  → [3] Semantic analysis
+  → [4] Code generation (Code Generator) → x86_64 assembly (.s)
+  → [5] Assemble + link (NASM + ld) → executable binary (Mach-O)
+```
+
+---
+
+## Current Status
+
+**Phase: Lexical analysis (Lexer) — before implementation**
+
+### Completed
+- macOS environment setup finalized
   - NASM: `brew install nasm`
   - binutils: `brew install binutils`
-  - Dart SDK: Flutter SDKに同梱済み
-- プロジェクト設計の合意
-  - TDDで進める（テストを先に書いてから実装）
-  - エラーには必ず行番号・列番号を含める
+  - Dart SDK: bundled with Flutter SDK
+- Project design agreed upon
+  - Proceed with TDD (write tests before implementation)
+  - All errors must include line and column numbers
 
-### 次にやること（Lexerの実装）
+### Next Steps (Lexer implementation)
 
-以下の3ファイルを作成してTDDで実装を始める。
+Create the following 3 files and start TDD implementation.
 
-#### lib/token.dart（実装済みコード）
+#### lib/token.dart (implemented code)
 
 ```dart
 enum TokenType {
-  // リテラル
+  // Literals
   number,
 
-  // 演算子
+  // Operators
   plus,   // +
   minus,  // -
   star,   // *
   slash,  // /
 
-  // 区切り文字
+  // Delimiters
   lparen, // (
   rparen, // )
 
-  // 終端
+  // End of file
   eof,
 }
 
 class Token {
   final TokenType type;
-  final String lexeme;   // ソースコード上の元の文字列（"42"など）
-  final int line;        // 行番号（エラー報告用）
-  final int column;      // 列番号（エラー報告用）
+  final String lexeme;   // The original string in source code (e.g., "42")
+  final int line;        // Line number (for error reporting)
+  final int column;      // Column number (for error reporting)
 
   const Token({
     required this.type,
@@ -82,7 +82,7 @@ class Token {
 }
 ```
 
-#### lib/lexer.dart（骨格のみ・_scanToken()は未実装）
+#### lib/lexer.dart (skeleton only — _scanToken() not yet implemented)
 
 ```dart
 import 'token.dart';
@@ -126,7 +126,7 @@ class Lexer {
     return tokens;
   }
 
-  // TODO: 以下を実装する
+  // TODO: implement the following
   // bool _isAtEnd()
   // Token? _scanToken()
   // String _advance()
@@ -134,7 +134,7 @@ class Lexer {
 }
 ```
 
-#### test/lexer_test.dart（テストコード）
+#### test/lexer_test.dart (test code)
 
 ```dart
 import 'package:test/test.dart';
@@ -143,7 +143,7 @@ import '../lib/token.dart';
 
 void main() {
   group('Lexer', () {
-    test('単純な加算をトークナイズできる', () {
+    test('tokenizes a simple addition expression', () {
       final tokens = Lexer('3 + 4').tokenize();
       expect(tokens[0].type, TokenType.number);
       expect(tokens[0].lexeme, '3');
@@ -153,18 +153,18 @@ void main() {
       expect(tokens[3].type, TokenType.eof);
     });
 
-    test('複数桁の数値をトークナイズできる', () {
+    test('tokenizes a multi-digit number', () {
       final tokens = Lexer('123').tokenize();
       expect(tokens[0].lexeme, '123');
     });
 
-    test('括弧をトークナイズできる', () {
+    test('tokenizes parentheses', () {
       final tokens = Lexer('(1 + 2)').tokenize();
       expect(tokens[0].type, TokenType.lparen);
       expect(tokens[4].type, TokenType.rparen);
     });
 
-    test('未知の文字でLexerExceptionを投げる', () {
+    test('throws LexerException for an unknown character', () {
       expect(() => Lexer('@').tokenize(), throwsA(isA<LexerException>()));
     });
   });
@@ -173,11 +173,11 @@ void main() {
 
 ---
 
-## ディレクトリ構成
+## Directory Structure
 
 ```
 my_compiler/
-├── CLAUDE.md           ← このファイル
+├── CLAUDE.md           ← this file
 ├── pubspec.yaml
 ├── lib/
 │   ├── token.dart
@@ -186,7 +186,7 @@ my_compiler/
     └── lexer_test.dart
 ```
 
-## pubspec.yaml の dev_dependencies
+## pubspec.yaml dev_dependencies
 
 ```yaml
 dev_dependencies:
@@ -195,24 +195,25 @@ dev_dependencies:
 
 ---
 
-## 開発方針・ルール
+## Development Policy and Rules
 
-- **TDDで進める**: テストが失敗する状態を確認してから実装する
-- **エラーには必ず行番号・列番号を含める**
-- **各フェーズが完成したらテストが全部通ることを確認してから次へ**
-- **コード生成前にインタプリタとして動かす中間マイルストーンを置く**
-- **説明は詳細に**: 学習目的のため、なぜそう書くかの理由も説明する
+- **Proceed with TDD**: confirm tests are failing before implementing
+- **All errors must include line and column numbers**
+- **After each phase is complete, confirm all tests pass before moving to the next**
+- **Set an intermediate milestone to run as an interpreter before code generation**
+- **Explain in detail**: since this is for learning, also explain the reasoning behind design decisions
+- **Write all comments, identifiers, commit messages, and any other text in code in English, regardless of the language used in the prompt**
 
-## 回答スタイルの要件
+## Response Style Requirements
 
-- あいまいな例え話なし
-- 具体的・技術的に詳細に説明する
-- 理論的な背景（なぜそう設計するか）も都度説明する
+- No vague analogies
+- Explain concretely and in technical detail
+- Also explain the theoretical background (why things are designed the way they are) as needed
 
 ---
 
-## 参考資料（手元に用意しておくと良いもの）
+## Reference Materials
 
-- [低レイヤを知りたい人のためのCコンパイラ作成入門](https://www.sigbus.info/compilerbook)（日本語・無料）
-- [Crafting Interpreters](https://craftinginterpreters.com/)（英語・無料）
-- System V AMD64 ABI仕様書（関数実装フェーズで必要）
+- [Low-Layer C Compiler Creation Guide](https://www.sigbus.info/compilerbook) (Japanese, free)
+- [Crafting Interpreters](https://craftinginterpreters.com/) (English, free)
+- System V AMD64 ABI specification (needed for the function implementation phase)
