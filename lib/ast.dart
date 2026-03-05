@@ -6,7 +6,7 @@ sealed class Expr {}
 
 /// A numeric literal. e.g. 42
 class NumberExpr extends Expr {
-  final int value; // Phase A: integers only
+  final double value; // Phase A: integers only
   NumberExpr(this.value);
 }
 
