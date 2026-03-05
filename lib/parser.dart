@@ -1,7 +1,7 @@
 // lib/parser.dart
 
-import 'ast.dart';
-import 'token.dart';
+import 'package:my_compiler/ast.dart';
+import 'package:my_compiler/token.dart';
 
 class ParseException implements Exception {
   final String message;
