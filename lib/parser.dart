@@ -70,20 +70,22 @@ class Parser {
   Expr _primary() {
     if (_check(TokenType.number)) {
       final token = _advance();
-      return NumberExpr(int.parse(token.lexeme));
+      return NumberExpr(double.parse(token.lexeme));
     }
     if (_check(TokenType.lparen)) {
       _advance(); // consume '('
       if (_check(TokenType.rparen)) {
         final t = _peek();
-        throw ParseException('Expected expression inside parentheses', t.line, t.column);
+        throw ParseException(
+            'Expected expression inside parentheses', t.line, t.column);
       }
       final expr = _expression();
       _expect(TokenType.rparen, 'Expected ")" after expression');
       return expr;
     }
     final t = _peek();
-    throw ParseException('Expected number or "(" but got "${t.lexeme}"', t.line, t.column);
+    throw ParseException(
+        'Expected number or "(" but got "${t.lexeme}"', t.line, t.column);
   }
 
   // --- Helper methods ---
