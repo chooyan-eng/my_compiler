@@ -5,10 +5,10 @@ import '../lib/token.dart';
 void main() {
   group('Lexer', () {
     // -------------------------
-    // 基本的なトークナイズ
+    // Basic tokenizing
     // -------------------------
 
-    test('単純な加算をトークナイズできる', () {
+    test('can tokenize a simple addition', () {
       final tokens = Lexer('3 + 4').tokenize();
       expect(tokens[0].type, TokenType.number);
       expect(tokens[0].lexeme, '3');
@@ -18,18 +18,18 @@ void main() {
       expect(tokens[3].type, TokenType.eof);
     });
 
-    test('複数桁の数値をトークナイズできる', () {
+    test('can tokenize a multi-digit number', () {
       final tokens = Lexer('123').tokenize();
       expect(tokens[0].lexeme, '123');
     });
 
-    test('括弧をトークナイズできる', () {
+    test('can tokenize parentheses', () {
       final tokens = Lexer('(1 + 2)').tokenize();
       expect(tokens[0].type, TokenType.lparen);
       expect(tokens[4].type, TokenType.rparen);
     });
 
-    test('四則演算子をすべてトークナイズできる', () {
+    test('can tokenize all four arithmetic operators', () {
       final tokens = Lexer('1 + 2 - 3 * 4 / 5').tokenize();
       expect(tokens[1].type, TokenType.plus);
       expect(tokens[3].type, TokenType.minus);
@@ -38,76 +38,76 @@ void main() {
     });
 
     // -------------------------
-    // 空白・改行・タブ
+    // Whitespace, newlines, and tabs
     // -------------------------
 
-    test('空白が複数あってもトークナイズできる', () {
+    test('can tokenize with multiple spaces', () {
       final tokens = Lexer('1   +   2').tokenize();
       expect(tokens.length, 4); // NUMBER, PLUS, NUMBER, EOF
     });
 
-    test('改行をまたいでもトークナイズできる', () {
+    test('can tokenize across newlines', () {
       final tokens = Lexer('1\n+\n2').tokenize();
       expect(tokens[0].type, TokenType.number);
       expect(tokens[1].type, TokenType.plus);
       expect(tokens[2].type, TokenType.number);
     });
 
-    test('タブ文字をスキップできる', () {
+    test('can skip tab characters', () {
       final tokens = Lexer('1\t+\t2').tokenize();
       expect(tokens.length, 4);
     });
 
     // -------------------------
-    // 行番号・列番号
+    // Line and column numbers
     // -------------------------
 
-    test('列番号が正しく記録される', () {
+    test('column numbers are recorded correctly', () {
       final tokens = Lexer('1 + 2').tokenize();
-      expect(tokens[0].column, 1); // '1' は1列目
-      expect(tokens[1].column, 3); // '+' は3列目
-      expect(tokens[2].column, 5); // '2' は5列目
+      expect(tokens[0].column, 1); // '1' is at column 1
+      expect(tokens[1].column, 3); // '+' is at column 3
+      expect(tokens[2].column, 5); // '2' is at column 5
     });
 
-    test('改行後に行番号がインクリメントされる', () {
+    test('line number increments after a newline', () {
       final tokens = Lexer('1\n+\n2').tokenize();
       expect(tokens[0].line, 1);
       expect(tokens[1].line, 2);
       expect(tokens[2].line, 3);
     });
 
-    test('改行後に列番号が1にリセットされる', () {
+    test('column number resets to 1 after a newline', () {
       final tokens = Lexer('1\n2').tokenize();
       expect(tokens[1].column, 1);
     });
 
     // -------------------------
-    // 数値リテラルの境界
+    // Number literal boundaries
     // -------------------------
 
-    test('0単体をトークナイズできる', () {
+    test('can tokenize a lone zero', () {
       final tokens = Lexer('0').tokenize();
       expect(tokens[0].lexeme, '0');
     });
 
-    test('空文字列はEOFのみを返す', () {
+    test('empty string returns only EOF', () {
       final tokens = Lexer('').tokenize();
       expect(tokens.length, 1);
       expect(tokens[0].type, TokenType.eof);
     });
 
     // -------------------------
-    // エラー系
+    // Error cases
     // -------------------------
 
-    test('未知の文字でLexerExceptionを投げる', () {
+    test('throws LexerException on unknown character', () {
       expect(() => Lexer('@').tokenize(), throwsA(isA<LexerException>()));
     });
 
-    test('エラーに正しい行番号・列番号が含まれる', () {
+    test('error includes correct line and column numbers', () {
       try {
         Lexer('1\n@').tokenize();
-        fail('例外が発生しなかった');
+        fail('expected an exception but none was thrown');
       } on LexerException catch (e) {
         expect(e.line, 2);
         expect(e.column, 1);
