@@ -12,129 +12,129 @@ Expr parse(String source) => Parser(Lexer(source).tokenize()).parse();
 void main() {
   group('Parser', () {
     // -------------------------
-    // 数値リテラル
+    // Number literals
     // -------------------------
 
-    test('単一の数値をパースできる', () {
+    test('parses a single number', () {
       final expr = parse('42');
       expect(expr, isA<NumberExpr>());
       expect((expr as NumberExpr).value, 42);
     });
 
     // -------------------------
-    // 二項演算
+    // Binary operations
     // -------------------------
 
-    test('加算をパースできる', () {
+    test('parses addition', () {
       final expr = parse('1 + 2') as BinaryExpr;
       expect(expr.op.type, TokenType.plus);
       expect((expr.left as NumberExpr).value, 1);
       expect((expr.right as NumberExpr).value, 2);
     });
 
-    test('減算をパースできる', () {
+    test('parses subtraction', () {
       final expr = parse('5 - 3') as BinaryExpr;
       expect(expr.op.type, TokenType.minus);
     });
 
-    test('乗算をパースできる', () {
+    test('parses multiplication', () {
       final expr = parse('3 * 4') as BinaryExpr;
       expect(expr.op.type, TokenType.star);
     });
 
-    test('除算をパースできる', () {
+    test('parses division', () {
       final expr = parse('8 / 2') as BinaryExpr;
       expect(expr.op.type, TokenType.slash);
     });
 
     // -------------------------
-    // 演算子の優先順位
+    // Operator precedence
     // -------------------------
 
-    test('乗算は加算より優先される', () {
-      // 1 + 2 * 3 は (1 + (2 * 3)) にパースされる
+    test('multiplication has higher precedence than addition', () {
+      // 1 + 2 * 3 should parse as (1 + (2 * 3))
       final expr = parse('1 + 2 * 3') as BinaryExpr;
-      expect(expr.op.type, TokenType.plus); // ルートは +
+      expect(expr.op.type, TokenType.plus); // root is +
       expect(expr.right, isA<BinaryExpr>());
-      expect((expr.right as BinaryExpr).op.type, TokenType.star); // 右辺が *
+      expect((expr.right as BinaryExpr).op.type, TokenType.star); // right child is *
     });
 
-    test('除算は減算より優先される', () {
-      // 6 - 4 / 2 は (6 - (4 / 2)) にパースされる
+    test('division has higher precedence than subtraction', () {
+      // 6 - 4 / 2 should parse as (6 - (4 / 2))
       final expr = parse('6 - 4 / 2') as BinaryExpr;
       expect(expr.op.type, TokenType.minus);
       expect((expr.right as BinaryExpr).op.type, TokenType.slash);
     });
 
-    test('加算は左結合である', () {
-      // 1 + 2 + 3 は ((1 + 2) + 3) にパースされる
+    test('addition is left-associative', () {
+      // 1 + 2 + 3 should parse as ((1 + 2) + 3)
       final expr = parse('1 + 2 + 3') as BinaryExpr;
       expect(expr.op.type, TokenType.plus);
-      expect(expr.left, isA<BinaryExpr>()); // 左辺が (1 + 2)
+      expect(expr.left, isA<BinaryExpr>()); // left child is (1 + 2)
     });
 
     // -------------------------
-    // 括弧
+    // Parentheses
     // -------------------------
 
-    test('括弧で優先順位を変えられる', () {
-      // (1 + 2) * 3 のルートは * でなければならない
+    test('parentheses override operator precedence', () {
+      // (1 + 2) * 3: root must be *
       final expr = parse('(1 + 2) * 3') as BinaryExpr;
-      expect(expr.op.type, TokenType.star); // ルートは *
+      expect(expr.op.type, TokenType.star); // root is *
       expect(expr.left, isA<BinaryExpr>());
       expect((expr.left as BinaryExpr).op.type, TokenType.plus);
     });
 
-    test('ネストした括弧をパースできる', () {
+    test('parses nested parentheses', () {
       final expr = parse('((1 + 2))');
       expect(expr, isA<BinaryExpr>());
     });
 
     // -------------------------
-    // 単項マイナス
+    // Unary minus
     // -------------------------
 
-    test('単項マイナスをパースできる', () {
+    test('parses unary minus', () {
       final expr = parse('-3') as UnaryExpr;
       expect(expr.op.type, TokenType.minus);
       expect((expr.operand as NumberExpr).value, 3);
     });
 
-    test('単項マイナスは乗算より優先される', () {
-      // -3 * 2 は (-3) * 2 にパースされる
+    test('unary minus has higher precedence than multiplication', () {
+      // -3 * 2 should parse as (-3) * 2
       final expr = parse('-3 * 2') as BinaryExpr;
       expect(expr.op.type, TokenType.star);
       expect(expr.left, isA<UnaryExpr>());
     });
 
-    test('単項マイナスが括弧に適用できる', () {
+    test('unary minus can be applied to a parenthesized expression', () {
       final expr = parse('-(1 + 2)') as UnaryExpr;
       expect(expr.operand, isA<BinaryExpr>());
     });
 
-    test('単項マイナスを連続で適用できる', () {
-      // --3 は -(-3) にパースされる
+    test('consecutive unary minus operators are parsed correctly', () {
+      // --3 should parse as -(-3)
       final expr = parse('--3') as UnaryExpr;
       expect(expr.operand, isA<UnaryExpr>());
     });
 
     // -------------------------
-    // エラー系
+    // Error cases
     // -------------------------
 
-    test('対応する閉じ括弧がない場合にParseExceptionを投げる', () {
+    test('throws ParseException when closing parenthesis is missing', () {
       expect(() => parse('(1 + 2'), throwsA(isA<ParseException>()));
     });
 
-    test('演算子の右辺がない場合にParseExceptionを投げる', () {
+    test('throws ParseException when right-hand side of operator is missing', () {
       expect(() => parse('1 +'), throwsA(isA<ParseException>()));
     });
 
-    test('数値が連続している場合にParseExceptionを投げる', () {
+    test('throws ParseException when two numbers appear consecutively', () {
       expect(() => parse('1 2'), throwsA(isA<ParseException>()));
     });
 
-    test('空の括弧はParseExceptionを投げる', () {
+    test('throws ParseException for empty parentheses', () {
       expect(() => parse('()'), throwsA(isA<ParseException>()));
     });
   });
