@@ -1,10 +1,10 @@
 // test/parser_test.dart
 
 import 'package:test/test.dart';
-import '../lib/lexer.dart';
-import '../lib/parser.dart';
-import '../lib/ast.dart';
-import '../lib/token.dart';
+import 'package:my_compiler/lexer.dart';
+import 'package:my_compiler/parser.dart';
+import 'package:my_compiler/ast.dart';
+import 'package:my_compiler/token.dart';
 
 /// Convenience: lex and parse in one step.
 Expr parse(String source) => Parser(Lexer(source).tokenize()).parse();
