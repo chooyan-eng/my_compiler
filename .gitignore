@@ -12,5 +12,11 @@ pubspec.lock
 # macOS
 .DS_Store
 
+# Temp files for testing
+test_out
+out.o
+out.s
+
 # Misc files
 /misc
+run.sh

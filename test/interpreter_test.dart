@@ -18,6 +18,7 @@ void main() {
     test('subtraction', () => expect(eval('5 - 3'), equals(2.0)));
     test('multiplication', () => expect(eval('4 * 3'), equals(12.0)));
     test('division', () => expect(eval('10 / 4'), equals(2.5)));
+    test('multiplication', () => expect(eval('30 * 20'), equals(600.0)));
   });
 
   group('Interpreter - operator precedence', () {
