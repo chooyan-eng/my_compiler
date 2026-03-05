@@ -1,4 +1,4 @@
-import 'token.dart';
+import 'package:my_compiler/token.dart';
 
 class LexerException implements Exception {
   final String message;

@@ -1,6 +1,6 @@
 import 'package:test/test.dart';
-import '../lib/lexer.dart';
-import '../lib/token.dart';
+import 'package:my_compiler/lexer.dart';
+import 'package:my_compiler/token.dart';
 
 void main() {
   group('Lexer', () {
