@@ -21,19 +21,31 @@ void main() {
     }
   }
 
-  group('X8664CodeGenerator', () {
-    test('integer literal', () async => expect(await compile('7'), equals(7)));
-    test('addition', () async => expect(await compile('3 + 4'), equals(7)));
-    test('subtraction', () async => expect(await compile('10 - 3'), equals(7)));
-    test('multiplication',
-        () async => expect(await compile('2 * 4'), equals(8)));
-    test('division', () async => expect(await compile('20 / 4'), equals(5)));
-    test('operator precedence',
-        () async => expect(await compile('1 + 2 * 3'), equals(7)));
-    test('parentheses',
-        () async => expect(await compile('(1 + 2) * 3'), equals(9)));
-    test(
-        'unary minus', () async => expect(await compile('10 + -3'), equals(7)));
-    test('multiply', () async => expect(await compile('30 * 20'), equals(600)));
-  });
+  group(
+    'X8664CodeGenerator',
+    () {
+      test('integer literal',
+          () async => expect(await compile('7'), equals(7)));
+      test('addition',
+          () async => expect(await compile('3 + 4'), equals(7)));
+      test('subtraction',
+          () async => expect(await compile('10 - 3'), equals(7)));
+      test('multiplication',
+          () async => expect(await compile('2 * 4'), equals(8)));
+      test('division',
+          () async => expect(await compile('20 / 4'), equals(5)));
+      test('operator precedence',
+          () async => expect(await compile('1 + 2 * 3'), equals(7)));
+      test('parentheses',
+          () async => expect(await compile('(1 + 2) * 3'), equals(9)));
+      test('unary minus',
+          () async => expect(await compile('10 + -3'), equals(7)));
+      test('multiply',
+          () async => expect(await compile('30 * 20'), equals(600)));
+    },
+    // This compiler emits x86-64 Mach-O binaries via NASM (macho64 format),
+    // which only works on macOS.  Skip on all other platforms so that CI
+    // runners on Linux do not fail with a missing-executable error.
+    skip: Platform.isMacOS ? false : 'macOS only (requires nasm + Mach-O)',
+  );
 }
