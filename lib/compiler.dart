@@ -13,39 +13,51 @@ class Compiler {
     // 3. Generate assembly
     final asm = X8664CodeGenerator().generate(ast);
 
-    // 4. Write assembly file
-    final asmFile = File('out.s');
-    await asmFile.writeAsString(asm);
+    // Derive intermediate file paths from outPath so no paths are hardcoded.
+    // The caller controls where all files land.
+    final asmPath = '$outPath.s';
+    final objPath = '$outPath.o';
 
-    // 5. Assemble with NASM
-    final nasmResult = await Process.run('nasm', [
-      '-f',
-      'macho64',
-      'out.s',
-      '-o',
-      'out.o',
-    ]);
-    if (nasmResult.exitCode != 0) {
-      throw Exception('NASM failed:\n${nasmResult.stderr}');
-    }
+    try {
+      // 4. Write assembly file
+      await File(asmPath).writeAsString(asm);
 
-    // 6. Link with ld
-    final ldResult = await Process.run('ld', [
-      'out.o',
-      '-o',
-      outPath,
-      '-macosx_version_min',
-      '10.13',
-      '-e',
-      '_main',
-      '-arch',
-      'x86_64',
-      '-lSystem',
-      '-L',
-      '/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib',
-    ]);
-    if (ldResult.exitCode != 0) {
-      throw Exception('ld failed:\n${ldResult.stderr}');
+      // 5. Assemble with NASM
+      final nasmResult = await Process.run('nasm', [
+        '-f',
+        'macho64',
+        asmPath,
+        '-o',
+        objPath,
+      ]);
+      if (nasmResult.exitCode != 0) {
+        throw Exception('NASM failed:\n${nasmResult.stderr}');
+      }
+
+      // 6. Link with ld
+      final ldResult = await Process.run('ld', [
+        objPath,
+        '-o',
+        outPath,
+        '-macosx_version_min',
+        '10.13',
+        '-e',
+        '_main',
+        '-arch',
+        'x86_64',
+        '-lSystem',
+        '-L',
+        '/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib',
+      ]);
+      if (ldResult.exitCode != 0) {
+        throw Exception('ld failed:\n${ldResult.stderr}');
+      }
+    } finally {
+      // Clean up intermediate files regardless of success or failure.
+      for (final p in [asmPath, objPath]) {
+        final f = File(p);
+        if (f.existsSync()) f.deleteSync();
+      }
     }
   }
 }

@@ -5,10 +5,20 @@ import 'package:test/test.dart';
 
 void main() {
   Future<int> compile(String source) async {
-    await Compiler().compileToExecutable(source, './test_out');
-    final result = await Process.run('./test_out', []);
-    // Parse stdout instead of exitCode to avoid 8-bit truncation.
-    return int.parse((result.stdout as String).trim());
+    // Use a unique path in the system temp directory so concurrent tests do
+    // not race on the same output file.  compileToExecutable derives its
+    // intermediate file paths (*.s, *.o) from this path, so they also land
+    // in a neutral location that is always writable.
+    final tempDir = Directory.systemTemp.createTempSync('codegen_test_');
+    final outPath = '${tempDir.path}/out';
+    try {
+      await Compiler().compileToExecutable(source, outPath);
+      final result = await Process.run(outPath, []);
+      // Parse stdout instead of exitCode to avoid 8-bit truncation.
+      return int.parse((result.stdout as String).trim());
+    } finally {
+      tempDir.deleteSync(recursive: true);
+    }
   }
 
   group('X8664CodeGenerator', () {
