@@ -72,12 +72,22 @@ class Lexer {
     final char = _advance();
 
     switch (char) {
-      case '+': return _makeToken(TokenType.plus);
-      case '-': return _makeToken(TokenType.minus);
-      case '*': return _makeToken(TokenType.star);
-      case '/': return _makeToken(TokenType.slash);
-      case '(': return _makeToken(TokenType.lparen);
-      case ')': return _makeToken(TokenType.rparen);
+      case '+':
+        return _makeToken(TokenType.plus);
+      case '-':
+        return _makeToken(TokenType.minus);
+      case '*':
+        return _makeToken(TokenType.star);
+      case '/':
+        return _makeToken(TokenType.slash);
+      case '(':
+        return _makeToken(TokenType.lparen);
+      case ')':
+        return _makeToken(TokenType.rparen);
+      case '=':
+        return _makeToken(TokenType.assign);
+      case ';':
+        return _makeToken(TokenType.semicolon);
 
       // Skip whitespace — return null so tokenize() doesn't add it.
       case ' ':
@@ -96,6 +106,17 @@ class Lexer {
             _advance();
           }
           return _makeToken(TokenType.number);
+        } else if (_isAlpha(char)) {
+          while (!_isAtEnd() && (_isAlpha(_peek()) || _isDigit(_peek()))) {
+            _advance();
+          }
+          final lexeme = source.substring(_start, _current);
+          return _makeToken(
+            switch (lexeme) {
+              'let' => TokenType.let,
+              _ => TokenType.identifier,
+            },
+          );
         }
 
         throw LexerException(
@@ -107,5 +128,11 @@ class Lexer {
   }
 
   // Returns true if the character is an ASCII digit (0-9).
-  bool _isDigit(String char) => char.codeUnitAt(0) >= 48 && char.codeUnitAt(0) <= 57;
+  bool _isDigit(String char) =>
+      char.codeUnitAt(0) >= 48 && char.codeUnitAt(0) <= 57;
+
+  bool _isAlpha(String char) =>
+      (char.codeUnitAt(0) >= 65 && char.codeUnitAt(0) <= 90) || // A-Z
+      (char.codeUnitAt(0) >= 97 && char.codeUnitAt(0) <= 122) || // a-z
+      char == '_';
 }
