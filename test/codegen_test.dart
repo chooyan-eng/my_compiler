@@ -5,10 +5,19 @@ import 'package:test/test.dart';
 
 void main() {
   Future<int> compile(String source) async {
-    await Compiler().compileToExecutable(source, './test_out');
-    final result = await Process.run('./test_out', []);
-    // Parse stdout instead of exitCode to avoid 8-bit truncation.
-    return int.parse((result.stdout as String).trim());
+    // Use a unique temp path per invocation to avoid conflicts when tests
+    // run concurrently.
+    final tmpOut = File(
+      '${Directory.systemTemp.path}/test_out_${DateTime.now().microsecondsSinceEpoch}',
+    );
+    try {
+      await Compiler().compileToExecutable(source, tmpOut.path);
+      final result = await Process.run(tmpOut.path, []);
+      // Parse stdout instead of exitCode to avoid 8-bit truncation.
+      return int.parse((result.stdout as String).trim());
+    } finally {
+      if (tmpOut.existsSync()) tmpOut.deleteSync();
+    }
   }
 
   group('X8664CodeGenerator', () {

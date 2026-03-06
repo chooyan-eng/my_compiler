@@ -13,39 +13,47 @@ class Compiler {
     // 3. Generate assembly
     final asm = X8664CodeGenerator().generate(ast);
 
-    // 4. Write assembly file
-    final asmFile = File('out.s');
-    await asmFile.writeAsString(asm);
+    // 4. Write assembly file into a unique temp directory to avoid conflicts
+    //    when multiple tests run concurrently.
+    final tempDir = Directory.systemTemp.createTempSync('my_compiler_');
+    try {
+      final asmPath = '${tempDir.path}/out.s';
+      final objPath = '${tempDir.path}/out.o';
 
-    // 5. Assemble with NASM
-    final nasmResult = await Process.run('nasm', [
-      '-f',
-      'macho64',
-      'out.s',
-      '-o',
-      'out.o',
-    ]);
-    if (nasmResult.exitCode != 0) {
-      throw Exception('NASM failed:\n${nasmResult.stderr}');
-    }
+      await File(asmPath).writeAsString(asm);
 
-    // 6. Link with ld
-    final ldResult = await Process.run('ld', [
-      'out.o',
-      '-o',
-      outPath,
-      '-macosx_version_min',
-      '10.13',
-      '-e',
-      '_main',
-      '-arch',
-      'x86_64',
-      '-lSystem',
-      '-L',
-      '/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib',
-    ]);
-    if (ldResult.exitCode != 0) {
-      throw Exception('ld failed:\n${ldResult.stderr}');
+      // 5. Assemble with NASM
+      final nasmResult = await Process.run('nasm', [
+        '-f',
+        'macho64',
+        asmPath,
+        '-o',
+        objPath,
+      ]);
+      if (nasmResult.exitCode != 0) {
+        throw Exception('NASM failed:\n${nasmResult.stderr}');
+      }
+
+      // 6. Link with ld
+      final ldResult = await Process.run('ld', [
+        objPath,
+        '-o',
+        outPath,
+        '-macosx_version_min',
+        '10.13',
+        '-e',
+        '_main',
+        '-arch',
+        'x86_64',
+        '-lSystem',
+        '-L',
+        '/Library/Developer/CommandLineTools/SDKs/MacOSX.sdk/usr/lib',
+      ]);
+      if (ldResult.exitCode != 0) {
+        throw Exception('ld failed:\n${ldResult.stderr}');
+      }
+    } finally {
+      tempDir.deleteSync(recursive: true);
     }
   }
 }
